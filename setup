@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CODEX_DIR="${CODEX_HOME:-$HOME/.codex}"
+
+main() {
+  local source_file target_file current_target
+  source_file="$ROOT_DIR/AGENTS.md"
+  target_file="$CODEX_DIR/AGENTS.md"
+  if [ -L "$target_file" ]; then
+    current_target="$(readlink "$target_file")"
+    if [ "$current_target" = "$source_file" ]; then
+      printf 'already linked: %s\n' "$target_file"
+      return
+    fi
+    printf 'refusing to replace link: %s -> %s\n' \
+      "$target_file" "$current_target" >&2
+    return 1
+  fi
+  if [ -e "$target_file" ]; then
+    printf 'refusing to replace file: %s\n' "$target_file" >&2
+    return 1
+  fi
+  mkdir -p "$CODEX_DIR"
+  ln -s "$source_file" "$target_file"
+  printf 'linked: %s -> %s\n' "$target_file" "$source_file"
+}
+
+main "$@"

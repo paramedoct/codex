@@ -1,45 +1,67 @@
 # 에이전트 공통 지침
 
-## 작업 방식
-
+## 작업 철학
 - 주요 명령 흐름을 쉽게 읽히게 유지하라.
-- 넓은 추상화보다 최소 MVP 구현을 우선하라.
+- 넓은 추상화보다 최소 구현을 우선하라.
 - 운영자가 읽기 쉬운 출력을 먼저 고려하라.
-- 나중에 자동 검사와 출력 기록을 지원할 수 있게 설계하라.
+- 스크립트가 검사하고 기록하기 쉬운 출력을 만들어라.
 
-## 셸 호환성
-
-- 셸 코드는 `bash`와 호환되게 작성하라.
-- `mapfile`, 연관 배열, `readarray` 등 bash 4 이상 기능을 피하라.
-- 버전별 도우미보다 단순한 반복문과 명시적 데이터 수집을 사용하라.
+## 셸 정신모델
+- 루트 실행 파일에는 읽기 쉬운 명령 흐름만 남겨라.
+- 세부 로직은 `utils/`의 작은 함수로 나눠라.
+- stdout에는 결과를, stderr에는 진단을 출력하라.
+- 성공과 실패는 종료 코드로 구분하라.
+- `bash` 4 이상 기능보다 단순한 반복문과 명시적 데이터 수집을 사용하라.
 
 ## 셸 형식
+- 실행 파일은 다음 형태를 따르라.
 
-- 실행 가능한 bash 진입점에 `#!/usr/bin/env bash`를 사용하라.
-- 진입점은 셔뱅, `set -euo pipefail`, 시작 변수, 빈 줄 하나, 도우미 또는 소싱한 모듈 순으로 배치하라.
-- 저장소 루트는 `ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`로 구하라.
-- 여러 모듈은 `source_modules \` 뒤에 한 줄당 경로 하나씩 이어서 불러와라.
-- 함수의 `local` 변수는 함수 맨 위에 선언하라.
-- 함수 본문을 간결하게 유지하고 인접한 문장 사이에 빈 줄을 넣지 마라.
-- 최상위 함수 정의 사이에는 빈 줄을 정확히 하나만 넣어라.
-- 마지막 `main "$@"` 호출 앞에 빈 줄을 하나 넣어라.
-- 인라인 `shellcheck` 억제문은 해당 명령 바로 위에 배치하라.
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-## 문서화
+usage() {
+  echo "$0 <target>" >&2
+  exit 1
+}
 
-- 지속적인 개발 지침은 이 `AGENTS.md`에 기록하라.
-- `docs/` 디렉터리를 추가하지 마라.
-- 사용자가 명시적으로 요청하지 않으면 `README.md`를 수정하거나 커밋하지 마라.
+# shellcheck source=/dev/null
+source "$ROOT_DIR/utils/source.sh"
+source_modules \
+  utils/profile.sh \
+  utils/target.sh
+
+main() {
+  local target
+  [ "$#" -eq 1 ] || usage
+  target=$1
+  profile_prepare
+  target_run "$target"
+}
+
+main "$@"
+```
+
+- 모듈 함수는 다음 형태를 따르라.
+
+```bash
+target_run() {
+  local target
+  local result
+  target=$1
+  result=$(target_find "$target") || return 1
+  printf '%s\n' "$result"
+}
+```
 
 ## 이름과 출력
-
 - 표준 약어를 제외한 사용자 로그 메시지는 소문자로 작성하라.
 - 영리한 형식보다 가독성을 우선하라.
 - 가능하면 한 줄을 88자 이내로 유지하라.
 - 의미가 분명하면 짧은 이름을 사용하라.
 
 ## 커밋
-
 - 논리적 변경 하나마다 작고 의미 있는 커밋을 만들어라.
 - `add: ...`, `fix: ...`, `refactor: ...`처럼 소문자 구글 스타일 제목을 사용하라.
 - 자세한 설명이 필요하지 않으면 본문 없이 제목만 작성하라.

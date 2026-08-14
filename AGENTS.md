@@ -1,55 +1,51 @@
-# global agent guide
+# 에이전트 공통 지침
 
-## working style
+## 작업 방식
 
-- keep the main command flow easy to read
-- prefer minimal mvp implementations over broad abstractions
-- make output readable for operators first
-- design changes so they can later support automated checks and recorded output
+- 주요 명령 흐름을 쉽게 읽히게 유지하라.
+- 넓은 추상화보다 최소 MVP 구현을 우선하라.
+- 운영자가 읽기 쉬운 출력을 먼저 고려하라.
+- 나중에 자동 검사와 출력 기록을 지원할 수 있게 설계하라.
 
-## shell compatibility
+## 셸 호환성
 
-- keep shell code compatible with `bash`
-- avoid bash 4+ features such as `mapfile`, associative arrays, and `readarray`
-- prefer simple loops and explicit data collection over version-specific helpers
+- 셸 코드는 `bash`와 호환되게 작성하라.
+- `mapfile`, 연관 배열, `readarray` 등 bash 4 이상 기능을 피하라.
+- 버전별 도우미보다 단순한 반복문과 명시적 데이터 수집을 사용하라.
 
-## shell format
+## 셸 형식
 
-- use `#!/usr/bin/env bash` for executable bash entrypoints
-- order entrypoints as shebang, `set -euo pipefail`, startup variables, one blank
-  line, then helpers or sourced modules
-- derive a repository root with
-  `ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`
-- load multiple modules with `source_modules \` and one path per continued line
-- declare `local` variables at the top of a function
-- keep function bodies compact without blank lines between adjacent statements
-- keep exactly one blank line between top-level function definitions
-- keep one blank line before the final `main "$@"` call
-- place inline `shellcheck` suppressions immediately above the affected command
+- 실행 가능한 bash 진입점에 `#!/usr/bin/env bash`를 사용하라.
+- 진입점은 셔뱅, `set -euo pipefail`, 시작 변수, 빈 줄 하나, 도우미 또는 소싱한 모듈 순으로 배치하라.
+- 저장소 루트는 `ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`로 구하라.
+- 여러 모듈은 `source_modules \` 뒤에 한 줄당 경로 하나씩 이어서 불러와라.
+- 함수의 `local` 변수는 함수 맨 위에 선언하라.
+- 함수 본문을 간결하게 유지하고 인접한 문장 사이에 빈 줄을 넣지 마라.
+- 최상위 함수 정의 사이에는 빈 줄을 정확히 하나만 넣어라.
+- 마지막 `main "$@"` 호출 앞에 빈 줄을 하나 넣어라.
+- 인라인 `shellcheck` 억제문은 해당 명령 바로 위에 배치하라.
 
-## documentation
+## 문서화
 
-- keep durable development instructions in this `AGENTS.md`
-- do not add a `docs/` directory
-- do not modify or commit `README.md` unless the user explicitly asks
+- 지속적인 개발 지침은 이 `AGENTS.md`에 기록하라.
+- `docs/` 디렉터리를 추가하지 마라.
+- 사용자가 명시적으로 요청하지 않으면 `README.md`를 수정하거나 커밋하지 마라.
 
-## naming and output
+## 이름과 출력
 
-- keep user-facing log messages lowercase except for standard acronyms
-- prefer readability over clever formatting
-- keep lines within 88 characters when practical
-- prefer short names when their meaning is clear
+- 표준 약어를 제외한 사용자 로그 메시지는 소문자로 작성하라.
+- 영리한 형식보다 가독성을 우선하라.
+- 가능하면 한 줄을 88자 이내로 유지하라.
+- 의미가 분명하면 짧은 이름을 사용하라.
 
-## commits
+## 커밋
 
-- make small, meaningful commits with one logical change each
-- use lowercase google-style titles such as `add: ...`, `fix: ...`, or
-  `refactor: ...`
-- prefer a title without a body unless more detail is necessary
-- split or narrow a commit whose title feels broad
-- amend the last commit before push when only its message needs correction
+- 논리적 변경 하나마다 작고 의미 있는 커밋을 만들어라.
+- `add: ...`, `fix: ...`, `refactor: ...`처럼 소문자 구글 스타일 제목을 사용하라.
+- 자세한 설명이 필요하지 않으면 본문 없이 제목만 작성하라.
+- 제목이 광범위하게 느껴지면 커밋을 나누거나 범위를 좁혀라.
+- 마지막 커밋의 메시지만 고칠 때는 푸시 전에 amend하라.
 
-## decision rule
+## 결정 원칙
 
-when choosing between abstraction and momentum, prefer the version that keeps today's
-command flow readable with the fewest moving parts.
+추상화와 추진력 중 선택할 때는 오늘의 명령 흐름을 가장 적은 구성 요소로 읽기 쉽게 유지하는 쪽을 택하라.
